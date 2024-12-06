@@ -255,6 +255,7 @@ public class UserManagementApp extends Application {
 		Button restoreGroup = new Button("Restore Group");
 		Button editArticles = new Button("Edit Articles");
 		Button myArt = new Button("Manage My Articles");
+		Button search = new Button("Search Articles");
 		//text fields for buttons
 		TextField deleteArticleInput = new TextField();
 		TextField viewArticleInput = new TextField();
@@ -269,6 +270,7 @@ public class UserManagementApp extends Application {
 		restoreByGroup.setPromptText("Enter the group you wish to restore");
 		
 		//button actions
+		search.setOnAction(e -> studentSearchPage(stage));
 		myArt.setOnAction(e -> manageArticlesPage(stage));
 		editArticles.setOnAction(e -> editArticlePage(stage));
 		if(currentUser.getRoles().get(0).equals("Admin"))
@@ -325,7 +327,7 @@ public class UserManagementApp extends Application {
 			}		
 		});
 		
-		layout.getChildren().addAll(action,listArticles,createArticle,deleteArticleInput,deleteArticle, editArticles, myArt, backup, restore, backupByGroup, backupGroup, restoreByGroup, restoreGroup, goBack);
+		layout.getChildren().addAll(action,listArticles,createArticle,deleteArticleInput,deleteArticle, search, editArticles, myArt, backup, restore, backupByGroup, backupGroup, restoreByGroup, restoreGroup, goBack);
 		Scene scene = new Scene(layout, 500, 600);
 		stage.setScene(scene);
 		stage.show();
@@ -339,7 +341,6 @@ public class UserManagementApp extends Application {
 		Articles article = articles.get(ArticleName);
 		String body = article.getBody();
 		//text field for article text
-		String text = String.valueOf(decryptedBody);
 		
 		TextArea articleBody = new TextArea();
 		articleBody.setText(body);
