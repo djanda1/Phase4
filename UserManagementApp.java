@@ -138,37 +138,158 @@ public class UserManagementApp extends Application {
 	}
 	
 	private void specialAccessPage(Stage stage)	{
+		
+		//Page elements
 		VBox layout = new VBox(10);
 		layout.setPadding(new Insets(20,20,20,20));
 		
-		Label lbArticles = new Label("List articles in this group.");
+		Label lbArticles = new Label("List specail access articles in this group.");
 		Button btArticles = new Button("List Articles");
-		
+		TextField tfArticles = new TextField();
+		tfArticles.setPromptText("Enter group");
 		
 		Label lbAdmins = new Label("List admins given rights to this group.");
 		Button btAdmins = new Button("List Admins");
-		
+		TextField tfAdmins = new TextField();
+		tfAdmins.setPromptText("Enter group");
 		
 		Label lbInstructors = new Label("List instructors given viewing rights to this group.");
 		Button btInstructors = new Button("List Instructors");
-		
+		TextField tfInstructors = new TextField();
+		tfInstructors.setPromptText("Enter group");
 		
 		Label lbAdminInstructors = new Label("List instructors given rights to this group.");
 		Button btAdminInstructors = new Button("List Instructors");
-		
+		TextField tfAdminInstructors = new TextField();
+		tfAdminInstructors.setPromptText("Enter group");
 		
 		Label lbStudents = new Label("List students given viewing rights to this group.");
 		Button btStudents = new Button("List Students");
-		
+		TextField tfStudents = new TextField();
+		tfStudents.setPromptText("Enter group");
 		
 		Button goBack = new Button("Go Back");
+		
+		//button actions
+		btArticles.setOnAction(e -> {
+			if(tfArticles.getText().isEmpty() == false)	{
+				listSpecialArticlesByGroup(stage, tfArticles.getText());
+				
+			}
+			else {
+				showAlert("Error","Please enter a group");
+			}
+		});
+		
+		btAdmins.setOnAction(e -> {
+			if(tfAdmins.getText().isEmpty() == false)	{
+
+				Map<String, Articles> groupMap = getSpecialArticlesByGroup(tfAdmins.getText());
+				
+				Articles temp;
+				Map<String, User> allowedUsers = new HashMap<>();	//Map for all allowed users
+				for(Map.Entry<String, Articles> entry : groupMap.entrySet())
+				{
+					temp = entry.getValue();
+					for (String user : temp.getAllowedUsers()) {
+						if(((users.get(user)).getRoles()).contains("Admin")) {
+							allowedUsers.put(user, users.get(user));// Code to add all users in getAllowedUsers string list into allowedUsers hashmap by copying them from the users hashmap whihc contatins all users	
+						}
+						
+					}
+					
+				}
+				//Search users for usernames,
+				listUsersSpecialAccess(stage, allowedUsers);
+			}
+			else {
+				showAlert("Error","Please enter a group");
+			}
+		});
+		
+		btInstructors.setOnAction(e -> {
+			if(tfInstructors.getText().isEmpty() == false)	{
+
+				Map<String, Articles> groupMap = getSpecialArticlesByGroup(tfInstructors.getText());
+				
+				Articles temp;
+				Map<String, User> allowedUsers = new HashMap<>();	//Map for all allowed users
+				for(Map.Entry<String, Articles> entry : groupMap.entrySet())
+				{
+					temp = entry.getValue();
+					for (String user : temp.getAllowedUsers()) {
+						if(((users.get(user)).getRoles()).contains("Instructor")) {
+							allowedUsers.put(user, users.get(user));// Code to add all users in getAllowedUsers string list into allowedUsers hashmap by copying them from the users hashmap whihc contatins all users	
+						}
+						
+					}
+					
+				}
+				listUsersSpecialAccess(stage, allowedUsers);
+			}
+			else {
+				showAlert("Error","Please enter a group");
+			}
+		});
+		
+		btAdminInstructors.setOnAction(e -> {
+			if(tfAdminInstructors.getText().isEmpty() == false)	{
+
+				Map<String, Articles> groupMap = getSpecialArticlesByGroup(tfAdminInstructors.getText());
+				
+				Articles temp;
+				Map<String, User> allowedUsers = new HashMap<>();	//Map for all allowed users
+				for(Map.Entry<String, Articles> entry : groupMap.entrySet())
+				{
+					temp = entry.getValue();
+					for (String user : temp.getAllowedUsers()) {
+						if(((users.get(user)).getRoles()).contains("Admin") || ((users.get(user)).getRoles()).contains("Instructor")) {
+							allowedUsers.put(user, users.get(user));// Code to add all users in getAllowedUsers string list into allowedUsers hashmap 	
+						}
+						
+					}
+					
+				}				
+				listUsersSpecialAccess(stage, allowedUsers);
+
+			}
+			else {
+				showAlert("Error","Please enter a group");
+			}
+		});
+		
+		btStudents.setOnAction(e -> {
+			if(tfStudents.getText().isEmpty() == false)	{
+
+				Map<String, Articles> groupMap = getSpecialArticlesByGroup(tfStudents.getText());
+				
+				Articles temp;
+				Map<String, User> allowedUsers = new HashMap<>();	//Map for all allowed users
+				for(Map.Entry<String, Articles> entry : groupMap.entrySet())
+				{
+					temp = entry.getValue();
+					for (String user : temp.getAllowedUsers()) {
+						if(((users.get(user)).getRoles()).contains("Student")) {
+							allowedUsers.put(user, users.get(user));// Code to add all users in getAllowedUsers string list into allowedUsers hashmap by copying them from the users hashmap whihc contatins all users	
+						}
+						
+					}
+					
+				}				
+				listUsersSpecialAccess(stage, allowedUsers);
+
+			}
+			else {
+				showAlert("Error","Please enter a group");
+			}
+		});
+		
 		goBack.setOnAction(e ->showAdminPage(stage, "admin"));
 		
-		layout.getChildren().addAll(lbArticles,btArticles,lbAdmins,btAdmins,lbInstructors,btInstructors,lbAdminInstructors,btAdminInstructors,lbStudents,btStudents,goBack);
-		Scene scene = new Scene(layout, 400, 400);
+		layout.getChildren().addAll(lbArticles,tfArticles,btArticles,lbAdmins,tfAdmins,btAdmins,lbInstructors,tfInstructors,btInstructors,lbAdminInstructors,tfAdminInstructors,btAdminInstructors,lbStudents,tfStudents,btStudents,goBack);
+		Scene scene = new Scene(layout, 400, 600);
 		stage.setScene(scene);
 		stage.show();
-		stage.setTitle("Special Access Page");
 	}
 	
 	private void helpSystemPage(Stage stage)	{
@@ -377,6 +498,20 @@ public class UserManagementApp extends Application {
 		stage.show();
 		stage.setTitle("List Users Page");
 	}
+
+	private void listUsersSpecialAccess(Stage stage, Map<String, User> list) {
+		ObservableList<User> userList = FXCollections.observableArrayList(list.values());
+		ListView<User> listview = new ListView<>(userList);
+		VBox layout = new VBox(10);
+		layout.setPadding(new Insets(20,20,20,20));
+		Button goBack = new Button("Go Back");
+		goBack.setOnAction(e ->specialAccessPage(stage));
+		layout.getChildren().addAll(listview, goBack);
+		Scene scene = new Scene(layout, 300, 200);
+		stage.setScene(scene);
+		stage.show();
+		
+	}
 	
 	private void listArticles(Stage stage)				//list all articles method for admin and instructor
 	{
@@ -407,6 +542,21 @@ public class UserManagementApp extends Application {
 		stage.setScene(scene);
 		stage.show();
 		stage.setTitle("List Articles By Group");
+	}
+
+	private void listSpecialArticlesByGroup(Stage stage, String group)		//list all articles with the same group
+	{
+		Map<String, Articles> groupMap = getSpecialArticlesByGroup(group);
+		ObservableList<Articles> articleList = FXCollections.observableArrayList(groupMap.values());
+		ListView<Articles> listview = new ListView<>(articleList);
+		VBox layout = new VBox(10);
+		layout.setPadding(new Insets(20,20,20,20));
+		Button goBack = new Button("Go Back");
+		goBack.setOnAction(e -> specialAccessPage(stage));
+		layout.getChildren().addAll(listview, goBack);
+		Scene scene = new Scene(layout, 300, 200);
+		stage.setScene(scene);
+		stage.show();
 	}
 
 	private void updateRolesPage(Stage stage, String username) {
