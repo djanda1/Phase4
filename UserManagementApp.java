@@ -1209,25 +1209,31 @@ public class UserManagementApp extends Application {
 				
 	            Articles article = null; 
 	            for (Articles a : map.values()) { //iterate to find article from ID
-	                if (id == a.getIdForSearch()) {
+	                if (id == a.getId()) {
 	                    article = a;
 	                    break;  //stop at desired article from ID
 	                }
 	            }
-	            
+	            if(article != null) {
 	            viewArticle(stage, article, map); //if a null check is added the exception is avoided but in return nothing happens
+	            }
+	            
+	            else{
+	            	showAlert("Error", "No desired ID exists");
+	            }
+	            
+	            id = 0; //reset to 0 to autofill textField when backing
 	        } 
 			
-			else if(map.size() > 0 && id > 0){
-				showAlert("Error", "No desired ID exists");
-			}
 	       
 	        else if (map.size() > 0) { //if no id is chosen when searching
 	            searchResultPage(stage, map);  //show all relevant results without searching for ID
+	            id = 0;
 
 	        }
 	        else {
 	            showAlert("Error", "No results found");
+	            id = 0;
 	        }
 		});
 		
