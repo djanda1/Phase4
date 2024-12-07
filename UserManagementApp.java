@@ -12,10 +12,13 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import java.time.LocalDateTime;
 import java.util.*;
+import Encryption.EncryptionHelper;
+import Encryption.EncryptionUtils;
 
 import java.io.*;
 
 public class UserManagementApp extends Application {
+	private EncryptionHelper encryptionHelper;
 	private Map<String, User> users = new HashMap<>();
 	private Map<String, Articles> articles = new HashMap<>();
 	private User currentUser;
@@ -28,6 +31,7 @@ public class UserManagementApp extends Application {
 	@Override
 	public void start(Stage primaryStage) {
 		try {
+			encryptionHelper = new EncryptionHelper();
 		}
 		catch(Exception e)
 		{
@@ -61,6 +65,7 @@ public class UserManagementApp extends Application {
 		Button specialArticles = new Button("Special Articles");
 		TextField articleGroup = new TextField();
 		Button manageButt = new Button("Manage My Articles");
+		Button special = new Button("Special Access");
 		articleGroup.setPromptText("Enter the special group you would like to view");
 		
 		//button actions
@@ -110,7 +115,7 @@ public class UserManagementApp extends Application {
 		
 	    	layout.getChildren().addAll(updateRolesInput, updateRoles);
 
-		
+		special.setOnAction(e ->specialAccessPage(stage));
 		deleteAccountInput.setPromptText("Enter the username of the account desired to be deleted");
 		
 		deleteUsers.setOnAction(e -> {
@@ -460,11 +465,29 @@ public class UserManagementApp extends Application {
 		VBox layout = new VBox(10);
 		layout.setPadding(new Insets(20,20,20,20));
 		Articles article = articles.get(ArticleName);
-		String body = article.getBody();
+		String encryptedBody = article.getBody();
+		char[] decryptedBody;
+		try {
+		decryptedBody = EncryptionUtils.toCharArray(				//decrypt the body to show in gui
+				encryptionHelper.decrypt(
+						Base64.getDecoder().decode(
+								encryptedBody
+						), 
+						EncryptionUtils.getInitializationVector(article.getTitle().toCharArray())
+				)	
+		);
+		}
+		catch (Exception e) {
+			showAlert("Error", e.toString());
+			decryptedBody = null;
+		}
 		//text field for article text
+		String text = String.valueOf(decryptedBody);
 		
 		TextArea articleBody = new TextArea();
-		articleBody.setText(body);
+		articleBody.setText(text);
+		Arrays.fill(decryptedBody, '0');	//fill the decrypted array to avoid leaks
+		text = "";							//replace text with "" to avoid leaks
 		//buttons
 		Button goBack = new Button("Go Back");
 		Button updateArticle = new Button("Update Article");
@@ -1309,9 +1332,22 @@ public class UserManagementApp extends Application {
 		
 		//page elements
 		Label artLabel = new Label(art.getTitle());
-		String decryptedBody = art.getBody();
-		
-		
+		String encryptedBody = art.getBody();
+		char[] decryptedBody;
+		try {
+		decryptedBody = EncryptionUtils.toCharArray(				//decrypt the body to show in gui
+				encryptionHelper.decrypt(
+						Base64.getDecoder().decode(
+								encryptedBody
+						), 
+						EncryptionUtils.getInitializationVector(art.getTitle().toCharArray())
+				)	
+		);
+		}
+		catch (Exception e) {
+			showAlert("Error", e.toString());
+			decryptedBody = null;
+		}
 		Button goBack = new Button("Go Back");
 		String text = String.valueOf(decryptedBody);
 		TextArea ta = new TextArea(text);
@@ -1452,25 +1488,25 @@ public class UserManagementApp extends Application {
 			boolean isSpecial = specialCheckBox.isSelected();
 			
 			try {
-			if(!t.equals("") && !a.equals("") && !b.equals("") && !k.equals("") && !d.equals("") && !r.equals("") && !g.equals(""))		//if textfields are filled out
-			{
-				Articles newArticle = new Articles(t, d, k, a, b, r, g, l, isSpecial);
-				newArticle.addAllowedUser(currentUser.getUsername());
-				if(articles.get(t) == null)			//if article is unique then add it to system else show error
+				if(!t.equals("") && !a.equals("") && !b.equals("") && !k.equals("") && !d.equals("") && !r.equals("") && !g.equals(""))		//if textfields are filled out
 				{
-					articles.put(t, newArticle);
-					save();
-					showAlert("Success!", "The article has been created.");
-					articleHomePage(stage);
-				}
-				else
-					showAlert("Error", "This article is already in the system.");
-			}
+					String encryptedBody = Base64.getEncoder().encodeToString(
+							encryptionHelper.encrypt(b.getBytes(), EncryptionUtils.getInitializationVector(t.toCharArray())));
+					Articles newArticle = new Articles(t, d, k, a, encryptedBody, r, g, l, isSpecial);
+					newArticle.addAllowedUser(currentUser.getUsername());
+					if(articles.get(t) == null)			//if article is unique then add it to system else show error
+					{
+						articles.put(t, newArticle);
+						save();
+						showAlert("Success!", "The article has been created.");
+						articleHomePage(stage);
+					}
 			
 			else
 			{
 				showAlert("Error", "Not all text fields have been filled out");
 			}
+				}	
 		}
 			catch (Exception ee){
 				showAlert("Error", ee.toString());
