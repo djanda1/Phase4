@@ -1714,6 +1714,22 @@ public class UserManagementApp extends Application {
 		return groupMap;
 		
 	}
+
+	private Map<String, Articles> getSpecialArticlesByGroup(String group)		//returns a map of articles all from the same group
+	{
+		Map<String, Articles> groupMap = new HashMap<>();
+		Articles temp;
+		for(Map.Entry<String, Articles> entry : articles.entrySet())
+		{
+			temp = entry.getValue();
+			if(temp.getGroup().equals(group) && temp.isSpecial())
+			{
+				groupMap.put(temp.getTitle(), temp);
+			}
+		}
+		return groupMap;
+		
+	}
 	
 	private void backupArticles()		//back up all articles
 	{
